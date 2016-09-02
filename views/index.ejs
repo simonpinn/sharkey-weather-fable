@@ -1,0 +1,186 @@
+<html>
+<head>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="nvd3/build/nv.d3.min.css" rel="stylesheet">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="d3/d3.min.js"></script>
+    <script src="nvd3/build/nv.d3.min.js"></script>
+    <style>
+
+        body {
+            font: 10px sans-serif;
+        }
+
+        .bar rect {
+            fill: steelblue;
+            shape-rendering: crispEdges;
+        }
+
+        .bar text {
+            fill: #fff;
+        }
+
+        .axis path, .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+    </style>
+
+</head>
+
+<body>
+<h2><%= currentDate%></h2>
+<div class="container-fluid">
+    <div class="row">
+        <% for(var i=0;i < dates.length; i++){ %>
+        <tr>
+            <td><a href="/?date=<%=dates[i].to_char %>"><%=dates[i].to_char %></a></td>
+        </tr>
+        <% } %>
+    </div>
+
+
+    <div class="row">
+        <h2>Wind</h2>
+        <div id="windChart">
+            <svg></svg>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <h2>Temperature</h2>
+        <div id="tempChart">
+            <svg></svg>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function loadTempGraph(){
+        nv.addGraph(function(){
+            var chart = nv.models.lineChart().showLegend(true).showYAxis(true).showXAxis(true)
+                    .margin({top: 30, right: 60, bottom: 150, left: 70});
+            chart.xAxis
+                    .axisLabel('Time')
+                    .tickFormat(function(d) {
+                        return d3.time.format('%c')(new Date(d));
+                    })
+                    .rotateLabels(-45);
+
+            chart.yAxis
+                    .axisLabel('Temp')
+                    .tickFormat(d3.format('.02f')); //TODO
+
+            d3.select('#tempChart svg')
+                    .datum(tempSeriesData)
+                    .call(chart);
+
+            nv.utils.windowResize(function(){ chart.update() });
+            return chart;
+        });
+    }
+
+    function loadWindGraph(){
+        nv.addGraph(function(){
+            var chart = nv.models.multiChart()
+                    .margin({top: 30, right: 60, bottom: 150, left: 70})
+                    .yDomain2([0,360])
+                    .color(d3.scale.category10().range());
+
+            var options = {
+                showControls: false,
+                showLegend: true,
+                useInteractiveGuideline: true
+            }
+            chart.options(options);
+
+            chart.xAxis
+                    .axisLabel('Time')
+                    .tickFormat(function(d) {
+                        return d3.time.format('%c')(new Date(d));
+                    })
+                    .rotateLabels(-45);
+            //.tickFormat(d3.format(',r')); //TODO
+
+            chart.yAxis1
+                    .axisLabel('Wind Sped (knots)')
+                    .tickFormat(function(x){
+                        return d3.format('.02f')(x);
+                    }); //TODO
+
+            chart.yAxis2
+                    .axisLabel('Direction'); //TODO
+
+            d3.select('#windChart svg')
+                    .datum(windSeriesData)
+                    .call(chart);
+
+            nv.utils.windowResize(function(){ chart.update() });
+            return chart;
+        });
+    }
+
+    var windSeriesData;
+    function loadWind() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                var rawWindData = JSON.parse(xhttp.responseText);
+
+                var windGustSeries = rawWindData.map(function(d){
+                    return {
+                        x: new Date(d.created_date),
+                        y: (1.94384449 * d.gustspeed)
+                    };
+                });
+
+                var windAvgSeries = rawWindData.map(function(d){
+                    return {
+                        x: new Date(d.created_date),
+                        y: (1.94384449 * d.averagespeed)
+                    };
+                });
+                var windDirectionSeries = rawWindData.map(function(d){
+                    return {
+                        x: new Date(d.created_date),
+                        y: d.direction
+                    };
+                });
+
+                windSeriesData = [{values: windGustSeries, key: 'gust', yAxis: 1, type: 'line'},{values: windAvgSeries, key: 'avg', yAxis: 1, type: 'line'},{values: windDirectionSeries, key: 'direction', bar: true, yAxis: 2, type: 'scatter'}];
+                loadWindGraph();
+            }
+        };
+        xhttp.open("GET", "/api/data/wind?date=<%=currentDate%>", true);
+        xhttp.send();
+    }
+    var tempSeriesData;
+    function loadTemp() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                var rawTempData = JSON.parse(xhttp.responseText);
+                var tempSeries = rawTempData.map(function(d){
+                    return {
+                        x: new Date(d.created_date),
+                        y: d.temperature
+                    };
+                });
+
+                tempSeriesData = [{values: tempSeries, key: 'temp'}];
+                loadTempGraph();
+            }
+        };
+        xhttp.open("GET", "/api/data/temp?date=<%=currentDate%>", true);
+        xhttp.send();
+    }
+
+    loadWind();
+    loadTemp();
+</script>
+</body>
+</html>

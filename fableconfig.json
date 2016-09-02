@@ -1,0 +1,9 @@
+{
+  "module": "commonjs",
+  "sourceMaps": true,
+  "projFile": "./lib/index.fsx",
+  "outDir": "out",
+  "scripts": {
+    "prebuild": "npm install"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "sharkey-weather-fable",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start-server": "npm-run-all --parallel start-watching-js start-watching-fsx",
+    "start-watching-fsx": "nodemon ./lib/index.fsx --exec fable",
+    "start-watching-js": "nodemon ./lib/index.js --exec node"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.1",
+    "express": "^4.13.4",
+    "fable-core": "^0.5.5",
+    "pg": "^6.1.0"
+  },
+  "devDependencies": {
+    "fable-import-express": "^0.0.10",
+    "nodemon": "^1.10.2",
+    "npm-run-all": "^3.1.0"
+  },
+  "engines": {
+    "fable": "^0.5.9"
+  }
+}

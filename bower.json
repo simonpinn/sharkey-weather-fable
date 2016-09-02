@@ -1,0 +1,22 @@
+{
+  "name": "sharkey-weather-fable",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "Simon Pinn <simon.pinn@nearmap.com>"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "nvd3": "^1.8.3",
+    "bootstrap": "bootstrap.css#^2.3.2",
+    "d3": "^3.5.17"
+  }
+}
